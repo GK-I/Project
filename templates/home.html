@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #0d1a26;
+      color: #ffffff;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    p {
+      margin-bottom: 30px;
+      color: #a8b3c1;
+    }
+
+    .card-container {
+      display: flex;
+      gap: 20px;
+    }
+
+    .card {
+      flex: 1;
+      background-color: #1e2a36;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .card-icon {
+      width: 40px;
+      height: 40px;
+      background-color: #005eff;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-icon img {
+      width: 30px;
+      height: 30px;
+      border-radius: 4px;
+    }
+
+    .card-title {
+      font-size: 18px;
+      margin: 0;
+    }
+
+    .card-status {
+      font-size: 12px;
+      color: #5bc8af;
+    }
+
+    .card-description {
+      font-size: 14px;
+      color: #a8b3c1;
+      margin-bottom: 20px;
+    }
+
+    .card-link {
+      color: #005eff;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+    }
+
+    .card-link span {
+      margin-left: 5px;
+    }
+
+    .card-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Welcome back, Admin</h1>
+    <p>Here's an overview of your classroom analytics</p>
+    <div class="card-container">
+      <!-- Classroom Mode Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">
+            <!-- Reference to the downloaded image -->
+            <img src="images/classroom-icon.png" alt="classroom">
+          </div>
+          <span class="card-status">Active</span>
+        </div>
+        <h2 class="card-title">Classroom Mode</h2>
+        <p class="card-description">
+          Monitor live classroom activities and student engagement.
+        </p>
+        <a href="#" class="card-link">
+          Enter Classroom <span>&rarr;</span>
+        </a>
+      </div>
+      <!-- Exam Mode Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">
+            <!-- Placeholder for another icon -->
+            <img src="images/exam-icon.png" alt="exam">
+          </div>
+          <span class="card-status">Available</span>
+        </div>
+        <h2 class="card-title">Exam Mode</h2>
+        <p class="card-description">
+          Conduct and monitor examinations with enhanced security.
+        </p>
+        <a href="#" class="card-link">
+          Start Exam <span>&rarr;</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
