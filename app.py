@@ -106,4 +106,12 @@ def profile():
 def logout():
     logout_user()
     return redirect(url_for('login'))
+
+@app.after_request
+def add_header(response):
+    if request.endpoint not in ['static']:
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response
 app.run(debug=True)
