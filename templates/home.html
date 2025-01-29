@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
+</head>
+<body>
+  <!-- Top Navigation -->
+  <div class="top-nav">
+    <a href="{{ url_for('logout') }}" class="logout-button">Logout</a>
+  </div>
+  <div class="container">
+    <h1 class="title is-1">Welcome, {{ user.name }}</h1>
+    <p>Here's an overview of your classroom analytics</p>
+    <div class="card-container">
+      <!-- Classroom Mode Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">
+            <!-- Reference to the downloaded image -->
+            <img src="{{ url_for('static', filename='images/classroom-icon.png') }}" alt="classroom">
+          </div>
+          <!-- <span class="card-status">Active</span> -->
+        </div>
+        <h2 class="card-title">Classroom Mode</h2>
+        <p class="card-description">
+          Monitor live classroom activities and student engagement.
+        </p>
+        <a href="{{ url_for('classroom_mode',teacher_name=user.name)}}" class="card-link">
+          Enter Classroom <span>&rarr;</span>
+        </a>
+      </div>
+      <!-- Exam Mode Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">
+            <!-- Placeholder for another icon -->
+            <img src="{{ url_for('static', filename='images/exam-icon.png') }}" alt="exam">
+          </div>
+          <!-- <span class="card-status">Available</span> -->
+        </div>
+        <h2 class="card-title">Exam Mode</h2>
+        <p class="card-description">
+          Conduct and monitor examinations with enhanced security.
+        </p>
+        <a href="#" class="card-link">
+          Start Exam <span>&rarr;</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
