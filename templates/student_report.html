@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classroom Attentiveness Report</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='student_styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.x"></script>
+</head>
+<body>
+    <div class="top-nav">
+        <a href="{{ url_for('logout') }}" class="logout-button">Logout</a>
+    </div>
+    <div class="button-container">
+               
+        <button id="goBackButton" class="button">Go Back</button>
+    </div>
+    <div class="container">
+        <header>
+            <h1>Student Reports</h1>
+            {% if not students %}
+                <p class="error-message">No student data available for this report.</p>
+            {% endif %}
+        </header>
+
+        <div class="class-tiles">
+            <h2></h2>
+            <div class="tiles-container">
+                {% for student in students %}
+                <div class="class-tile">
+                    <h3 class="student-name">{{ student.name|default('Unnamed Student') }}</h3>
+                    <div class="chart-container">
+                        <canvas id="chart-{{ loop.index }}"></canvas>
+                    </div>
+                    <p class="attention-summary">
+                        Attentive: <strong>{{ student.attentive|default(0) }}%</strong> |
+                        Moderate: <strong>{{ student.moderately_attentive|default(0) }}%</strong> |
+                        Inattentive: <strong>{{ student.inattentive|default(0) }}%</strong>
+                    </p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            {% for student in students %}
+                try {
+                    var ctx = document.getElementById("chart-{{ loop.index }}");
+                    if (ctx) {
+                        new Chart(ctx.getContext("2d"), {
+                            type: "doughnut",
+                            data: {
+                                labels: ["Attentive", "Moderately Attentive", "Inattentive"],
+                                datasets: [{
+                                    data: [
+                                        {{ student.attentive|default(0)|int }},
+                                        {{ student.moderately_attentive|default(0)|int }},
+                                        {{ student.inattentive|default(0)|int }}
+                                    ],
+                                    backgroundColor: ["#4CAF50", "#FFC107", "#F44336"]
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                cutout: "60%",
+                                plugins: {
+                                    legend: {
+                                        display: false
+                                    }
+                                }
+                            }
+                        });
+                    }
+                } catch (error) {
+                    console.error("Error creating chart for student:", error);
+                }
+            {% endfor %}
+        });
+        document.getElementById('goBackButton').addEventListener('click', () => {
+            window.history.back(); // Go back one page in history
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='reports.css') }}">
+    <title>Reports Dashboard</title>
+</head>
+<body>
+    <header>
+        <h1>Reports Dashboard</h1>
+    </header>
+
+    <div class="top-nav">
+        <a href="#" class="logout-button">Logout</a>
+    </div>
+
+    <div class="container">
+        <!-- Reports Section -->
+        <div class="class-tiles">
+            <h2>Generated Reports for {{ venue_name }}</h2>
+            <div class="tiles-container">
+                {% if reports %}
+                    {% for report in reports %}
+                        <div class="class-tile">
+                            <h3>Report: {{ report.report_name }}</h3>
+                            <a href="{{ url_for('download_exam_report', report_id=report.report_id) }}" class="download-report">Download Report</a>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p>No reports generated yet for this venue.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Video Processing Section -->
+        <div class="class-tiles">
+            <h2>Process Exam Videos for {{ venue_name }}</h2>
+            <div class="tiles-container">
+                <div class="class-tile">
+                    <h3>Select Video</h3>
+                    <p>Choose an unprocessed video to start analysis.</p>
+                    
+                    <form action="{{ url_for('start_exam',venue_id=venue_id, venue_name=venue_name) }}" method="POST">
+                        <input type="hidden" name="venue_id" value="{{ venue_id }}">
+                        <label for="video_select">Select Video:</label>
+                        <select name="video_id" id="video_select" required>
+                            {% if videos %}
+                                {% for video in videos %}
+                                    <option value="{{ video.video_id }}">{{ video.video_name }}</option>
+                                {% endfor %}
+                            {% else %}
+                                <option disabled>No videos available</option>
+                            {% endif %}
+                        </select>
+                        <br><br>
+                        <button type="submit" class="view-report">Start Processing</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript for handling UI behavior if needed
+    </script>
+</body>
+</html>

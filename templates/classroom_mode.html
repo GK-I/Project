@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Classroom Mode</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='classroom_mode.css') }}">
+</head>
+<body>
+  <div class="top-nav">
+    <a href="{{ url_for('login') }}" class="logout-button">Logout</a>
+  </div>
+  <div class="container">
+    <header>
+      <h1>Welcome to Classroom Mode, {{ teacher.name }}</h1>
+    </header>
+
+    <div class="class-tiles">
+        <h2>Your Classes:</h2>
+        <div class="tiles-container">
+          {% for class in classes %}
+          <div class="class-tile">
+            <a href="{{ url_for('class_reports', class_id=class.id) }}">
+                <h3>{{ class.class_name }}</h3>
+            </a>
+         </div>
+          {% else %}
+            <p>You are not assigned to any classes yet.</p>
+          {% endfor %}
+        </div>
+      </div>
+  </div>
+</body>
+</html>

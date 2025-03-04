@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exam Mode</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='classroom_mode.css') }}">
+</head>
+<body>
+  <div class="top-nav">
+    <a href="{{ url_for('login') }}" class="logout-button">Logout</a>
+  </div>
+
+  <div class="container">
+    <header>
+      <h1>Welcome to Exam Mode, {{ teacher.name }}</h1>
+    </header>
+
+    <!-- Exam Venues -->
+    <div class="class-tiles">
+        <h2>Exam Venues:</h2>
+        <div class="tiles-container">
+          {% if venues %}
+            {% for venue in venues %}
+              <div class="class-tile">
+                <a href="{{ url_for('venue_dashboard', venue_id=venue.venue_id) }}">
+                  <h3>{{ venue.venue_name }}</h3>
+                </a>
+              </div>
+            {% endfor %}
+          {% else %}
+            <p>No venues available.</p>
+          {% endif %}
+        </div>
+    </div>
+  </div>
+</body>
+</html>

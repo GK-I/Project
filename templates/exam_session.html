@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suspicious Activity Detection</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #0d1a26;
+            color: #fff;
+            text-align: center;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            position: relative;
+        }
+        .button-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+        #image-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            width: 90%;
+            max-width: 1200px;
+            margin: 50px auto 0;
+        }
+        .image-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #1a2b3c;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .image-box img {
+            border: 2px solid red;
+            width: 100%;
+            max-width: 400px;
+        }
+        .reason {
+            font-size: 16px;
+            font-weight: bold;
+            color: red;
+        }
+        /* 🔹 Loading Animation (Initially Hidden) */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: white;
+            font-size: 20px;
+            z-index: 1000;
+        }
+        .spinner {
+            border: 6px solid rgba(255, 255, 255, 0.3);
+            border-top: 6px solid white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-top: 15px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <input type="hidden" id="venue_id" value="{{ venue_id }}">
+    <input type="hidden" id="video_id" value="{{ video_id }}">
+
+    <div class="container">
+        <div class="button-container">
+            <button class="button" onclick="stopSession()">Stop Processing</button>
+            <button class="button" onclick="goBack()">Go Back</button>
+        </div>
+        <div id="report-content">
+            <h1>Suspicious Person Detection</h1>
+            <div id="image-container"></div>
+        </div>
+    </div>
+
+    <!-- 🔹 Loading Animation Overlay (Initially Hidden) -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div>Generating Report...</div>
+        <div class="spinner"></div>
+    </div>
+
+    <script>
+        var socket = io.connect("http://127.0.0.1:5000");
+
+        socket.on("connect", function() {
+            console.log("✅ Connected to server!");
+        });
+
+        socket.on("suspicious_frame", function(data) {
+            var imgContainer = document.getElementById("image-container");
+            if (!imgContainer) {
+                console.error("❌ Error: #image-container not found!");
+                return;
+            }
+
+            var imageBox = document.createElement("div");
+            imageBox.className = "image-box";
+
+            var newImg = document.createElement("img");
+            newImg.src = "data:image/png;base64," + data.image;
+
+            var reasonText = document.createElement("div");
+            reasonText.className = "reason";
+            reasonText.textContent = "Reason: " + data.reason;
+
+            imageBox.appendChild(newImg);
+            imageBox.appendChild(reasonText);
+            imgContainer.appendChild(imageBox);
+        });
+
+        function stopSession() {
+    document.getElementById("loading-overlay").style.display = "flex"; // Show animation
+
+    setTimeout(() => {
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const reportContent = document.getElementById("report-content");
+        const buttonContainer = document.querySelector(".button-container");
+
+        // Hide buttons before capturing the screenshot
+        buttonContainer.style.display = "none"; 
+
+        html2canvas(reportContent, { scrollY: 0, useCORS: true, backgroundColor: "#0d1a26" }).then((canvas) => {
+            const imgData = canvas.toDataURL('image/png');
+            const imgWidth = 190;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+            pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+
+            const pdfBlob = pdf.output("blob");
+
+            const pdfFile = new File([pdfBlob], "session_report.pdf", { type: "application/pdf" });
+
+            const formData = new FormData();
+            formData.append("pdf", pdfFile);
+
+            const venueId = document.getElementById("venue_id").value;
+            const videoId = document.getElementById("video_id").value;
+            formData.append("venue_id", venueId);
+            formData.append("video_id", videoId);
+
+            fetch("http://127.0.0.1:5000/upload_pdf", {
+                method: "POST",
+                body: formData
+            }).then(response => response.json())
+            .then(data => {
+                console.log("✅ PDF uploaded successfully:", data);
+            }).catch(error => {
+                console.error("❌ Error uploading PDF:", error);
+            });
+
+            setTimeout(() => {
+                document.getElementById("loading-overlay").style.display = "none"; // Hide animation
+                alert("Session stopped!");
+                socket.emit("stop_session", {});
+                socket.disconnect();
+
+                // Restore the button container visibility after PDF generation
+                buttonContainer.style.display = "flex"; 
+            }, 500);
+        });
+    }, 500);
+}
+
+socket.on("Last frame", function(data) {
+    console.log("✅ Received Last Frame signal:", data);
+    stopSession(); // Automatically trigger stopSession when last frame is received
+});
+        function goBack() {
+            window.history.back();
+        }
+        
+    </script>
+    <script>
+        window.onload = function() {
+            console.log("📌 Venue ID:", document.getElementById("venue_id").value);
+            console.log("📌 Video ID:", document.getElementById("video_id").value);
+        };
+    </script>
+    </body>
+    </html>
+    
+</body>
+</html>

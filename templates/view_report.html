@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Report</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.socket.io/4.5.1/socket.io.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='session.css') }}">
+    <style>
+        .slider-container {
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        input[type="range"] {
+            width: 50%;
+        }
+        .timestamp {
+            text-align: center;
+            margin-top: 5px;
+        }
+    </style>
+
+</head>
+<body>
+    <header>
+        <h1>Session Report</h1>
+    </header>
+    <div class="dashboard-container">
+        <div class="container">
+            <canvas id="attentivenessChart" width="800" height="400"></canvas>
+            <h2>Emotion Distribution</h2>
+            <canvas id="emotionChart" width="400" height="400"></canvas>
+            <div class="slider-container">
+                <input type="range" id="emotionSlider" min="0" max="0" step="1">
+                <div id="emotionTimestamp" class="timestamp"></div>
+            </div>
+            <h2>Posture Distribution</h2>
+            <canvas id="postureChart" width="800" height="400"></canvas>
+            <div class="slider-container">
+                <input type="range" id="postureSlider" min="0" max="0" step="1">
+                <div id="postureTimestamp" class="timestamp"></div>
+            </div>
+            <div class="button-container">
+               
+                <button id="goBackButton" class="button">Go Back</button>
+            </div>
+            <div id="report-data" data-report-id="{{ report_id }}"></div>  
+        </div>
+    </div>
+
+    <script>
+        //const socket = io();
+        document.addEventListener('DOMContentLoaded', () => {
+            const socket = io();
+            const reportDataElement = document.getElementById('report-data'); // Get the element
+            const reportId = reportDataElement.dataset.reportId; // Access the data attribute // Get report_id from Flask template
+
+            socket.on('connect', () => {
+                console.log("Connected to server");
+                socket.emit('get_report_data', reportId); // Request data after connect
+            });
+
+            socket.on('report_data', (data) => {
+                console.log("Received report data:", data);
+                // ... (Process and display the data)
+            });
+
+            socket.on('report_error', (error) => {
+                console.error("Report error:", error.message);
+                // Display the error message to the user
+            });
+    
+        // Chart Initializations
+        const attentivenessChartCtx = document.getElementById('attentivenessChart').getContext('2d');
+        const attentivenessChart = new Chart(attentivenessChartCtx, {
+            type: 'line',
+            data: { labels: [], datasets: [{ label: 'Attentive (%)', data: [], borderColor: '#4CAF50', backgroundColor: 'rgba(76, 175, 80, 0.2)', fill: true, tension: 0.4 }, { label: 'Inattentive (%)', data: [], borderColor: '#F44336', backgroundColor: 'rgba(244, 67, 54, 0.2)', fill: true, tension: 0.4 }, { label: 'Moderately Attentive (%)', data: [], borderColor: '#FFC107', backgroundColor: 'rgba(255, 193, 7, 0.2)', fill: true, tension: 0.4 }] },
+            options: { responsive: true, plugins: { legend: { position: 'top' }, title: { display: true, text: 'Real-Time Attentiveness Over Time' } }, scales: { x: { title: { display: true, text: 'Time' } }, y: { title: { display: true, text: 'Attentiveness Percentage (%)' }, beginAtZero: true, max: 100 } } }
+        });
+
+        const emotionChartCtx = document.getElementById('emotionChart').getContext('2d');
+        const emotionChart = new Chart(emotionChartCtx, {
+            type: 'pie',
+            data: { labels: ['Happy', 'Sad', 'Fear', 'Angry', 'Disgust', 'Surprise', 'Neutral'], datasets: [{ label: 'Emotions', data: [], backgroundColor: ['#4CAF50', '#2196F3', '#FF9800', '#F44336', '#9C27B0', '#FFC107', '#607D8B'] }] },
+            options: { responsive: true, plugins: { legend: { position: 'top' }, title: { display: true, text: 'Emotion Distribution' } } }
+        });
+
+        const postureChartCtx = document.getElementById('postureChart').getContext('2d');
+        const postureChart = new Chart(postureChartCtx, {
+            type: 'bar',
+            data: { labels: ['Normal', 'Hand Raised', 'Hands Below', 'Extreme End', 'Hands on Head', 'Slouched'], datasets: [{ label: 'Posture Count', data: [], backgroundColor: ['#4CAF50', '#2196F3', '#FF9800', '#F44336', '#9C27B0', '#FFC107'] }] },
+            options: { responsive: true, plugins: { legend: { position: 'top' }, title: { display: true, text: 'Posture Distribution' } }, scales: { y: { beginAtZero: true, title: { display: true, text: 'Count' } } } }
+        });
+
+        const emotionSlider = document.getElementById('emotionSlider');
+        const emotionTimestamp = document.getElementById('emotionTimestamp');
+        const postureSlider = document.getElementById('postureSlider');
+        const postureTimestamp = document.getElementById('postureTimestamp');
+
+        let sessionData;
+
+        socket.on('report_data', (data) => {
+            console.log("Received report_data event");
+            console.log("Received report data:", data);
+            sessionData = data;
+            emotionSlider.max = sessionData.emotion_chart.timestamps.length - 1;
+            postureSlider.max = sessionData.posture_chart.timestamps.length - 1;
+            updateCharts(0);
+        });
+        socket.on('test_event', (data) => {
+    console.log("Received test_event:", data);
+});
+
+        function updateCharts(index) {
+            if (!sessionData) {
+                console.log("Session data is not yet available.");
+                return;
+            }
+            console.log("Session data is available:", sessionData);
+            // Attentiveness Chart Update
+            attentivenessChart.data.labels = sessionData.attentiveness_chart.timestamps.slice(0, index + 1);
+            attentivenessChart.data.datasets[0].data = sessionData.attentiveness_chart.attentive.slice(0, index + 1);
+            attentivenessChart.data.datasets[1].data = sessionData.attentiveness_chart.inattentive.slice(0, index + 1);
+            attentivenessChart.data.datasets[2].data = sessionData.attentiveness_chart.moderately_attentive.slice(0, index + 1);
+            attentivenessChart.update();
+
+            // Emotion Chart Update
+            const isEmotionOverall = index === sessionData.emotion_chart.timestamps.length - 1;
+            emotionTimestamp.innerText = isEmotionOverall ? "Overall Session Emotion" : `Timestamp: ${sessionData.emotion_chart.timestamps[index]}`;
+            emotionChart.data.datasets[0].data = isEmotionOverall ? sessionData.overall_session_emotion.average_emotions : sessionData.emotion_chart.emotion_data[index];
+            emotionChart.update();
+
+            // Posture Chart Update
+            const isPostureOverall = index === sessionData.posture_chart.timestamps.length - 1;
+            postureTimestamp.innerText = isPostureOverall ? "Overall Session Posture" : `Timestamp: ${sessionData.posture_chart.timestamps[index]}`;
+            postureChart.data.datasets[0].data = isPostureOverall ? sessionData.overall_session_posture.average_postures : sessionData.posture_chart.posture_data[index];
+            postureChart.update();
+        }
+
+        emotionSlider.addEventListener('input', (e) => {
+            const index = parseInt(e.target.value);
+            console.log("Emotion slider value:", index);
+            updateCharts(index);
+        });
+
+        postureSlider.addEventListener('input', (e) => {
+            const index = parseInt(e.target.value);
+            console.log("Posture slider value:", index);
+            updateCharts(index);
+        });
+        document.getElementById('goBackButton').addEventListener('click', () => {
+            window.history.back(); // Go back one page in history
+        });
+    });
+    </script>
+</body>
+</html>
